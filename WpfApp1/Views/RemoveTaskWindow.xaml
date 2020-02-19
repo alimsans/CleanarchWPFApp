@@ -1,0 +1,15 @@
+﻿<Window x:Class="WpfApp1.Views.RemoveTaskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1.Views"
+        mc:Ignorable="d"
+        Title="RemoveTaskWindow" Height="250" Width="300">
+    <Grid>
+        <Label Content="Task id" HorizontalAlignment="Left" Margin="10,67,0,0" VerticalAlignment="Top" Height="24" Width="139"/>
+        <TextBox x:Name="TaskId_TextBox" HorizontalAlignment="Left" Height="26" Margin="10,96,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="272"/>
+        <Button Click="Submit_Button_Click" Content="Sumbit" HorizontalAlignment="Left" Margin="81,169,0,0" VerticalAlignment="Top" Width="129" Height="40"/>
+
+    </Grid>
+</Window>
