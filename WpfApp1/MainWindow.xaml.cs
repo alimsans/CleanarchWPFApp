@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using WpfApp1.ViewModels;
 using WpfApp1.Views;
+using ThreadState = System.Threading.ThreadState;
 
 namespace WpfApp1
 {
@@ -54,6 +55,7 @@ namespace WpfApp1
         #region Event Handlers
 
         private bool _isSleeping;
+        private WaitWindow _waitWindow;
         private void OnBlockingOperationsStarted(object sender, EventArgs e)
         {
             if (!_isSleeping)
@@ -62,18 +64,14 @@ namespace WpfApp1
 
                 Application.Current.Dispatcher?.Invoke(() =>
                 {
-                    var waitWindow = new WaitWindow()
+                    _waitWindow = new WaitWindow()
                     {
                         Owner = this
                     };
-                    try
-                    {
-                        waitWindow.ShowDialog();
-                    }
-                    catch (ThreadInterruptedException)
-                    {
-                        waitWindow.Close();
-                    }
+
+                    _waitWindow.ShowDialog();
+
+                    _waitWindow = null;
                 });
 
                 _isSleeping = false;
@@ -83,7 +81,9 @@ namespace WpfApp1
         private void OnBlockingOperationsFinished(object sender, EventArgs e)
         {
             if (_isSleeping)
-                Application.Current.Dispatcher?.Thread.Interrupt();
+            {
+                Application.Current.Dispatcher?.Invoke(() => _waitWindow.Close());
+            }
         }
 
         private static void TodoListViewModel_OnError(object sender, System.IO.ErrorEventArgs e)

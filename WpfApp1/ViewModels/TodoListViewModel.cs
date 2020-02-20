@@ -32,7 +32,9 @@ namespace WpfApp1.ViewModels
             _controller.BlockingOperationsStarted += (sender, e) => BlockingOperationsStarted?.Invoke(sender, e);
             _controller.BlockingOperationsFinished += (sender, e) => BlockingOperationsFinished?.Invoke(sender, e);
 
-            _useCaseHandler = new UseCaseHandler<IEnumerable<TaskModel>>();
+            _useCaseHandler = new UseCaseHandler<IEnumerable<TaskModel>>(
+                onComplete: UpdateTodoList, 
+                onError: e =>  OnError?.Invoke(this, new ErrorEventArgs(e)));
         }
 
         public void AddTask(TaskModel taskModel)
@@ -45,7 +47,6 @@ namespace WpfApp1.ViewModels
 
         private void UpdateTodoList(IEnumerable<TaskModel> tasks)
         {
-            Application.Current.Dispatcher?.Thread.Interrupt();
             Application.Current.Dispatcher?.Invoke(() =>
             {
                 TodoList.Clear();
@@ -77,19 +78,5 @@ namespace WpfApp1.ViewModels
             _controller.AddOperation(() => useCase.ExecuteInController(_useCaseHandler), true);
             _controller.Execute();
         }
-
-        #region Event notifications
-
-        private void NotifyOnError(Exception e)
-        {
-            OnError?.Invoke(this, new ErrorEventArgs(e));
-        }
-
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion
     }
 }

@@ -81,7 +81,7 @@ namespace WpfApp1.Controllers
 
         private void OnBlockingOperationsFinished()
         {
-            Task.Run(() => BlockingOperationsFinished?.Invoke(this, EventArgs.Empty));
+            BlockingOperationsFinished?.Invoke(this, EventArgs.Empty);
         }
     }
 }
