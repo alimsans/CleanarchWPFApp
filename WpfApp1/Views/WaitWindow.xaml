@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfApp1.Views"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d" Name="Root" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        WindowStartupLocation="CenterOwner" 
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Width="200" Height="200" ResizeMode="NoResize" >
     <Grid>
         <Grid.Width>100</Grid.Width>

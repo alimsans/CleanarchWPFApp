@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using WpfApp1.ViewModels;
 using WpfApp1.Views;
-using ThreadState = System.Threading.ThreadState;
 
 namespace WpfApp1
 {
@@ -82,7 +78,7 @@ namespace WpfApp1
         {
             if (_isSleeping)
             {
-                Application.Current.Dispatcher?.Invoke(() => _waitWindow.Close());
+                 Application.Current.Dispatcher?.Invoke(() => _waitWindow.Close());
             }
         }
 

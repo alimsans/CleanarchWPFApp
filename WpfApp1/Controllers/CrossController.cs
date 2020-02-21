@@ -1,87 +1,63 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using Cleanarch.DomainLayer.Models;
-using Cleanarch.DomainLayer.UseCases;
-// ReSharper disable FieldCanBeMadeReadOnly.Local
 
 namespace WpfApp1.Controllers
 {
     internal class CrossController
     {
-        private IDictionary<Guid, ControllableOperation> _blockingOperations;
-        private Queue<ControllableOperation> _nonBlockingOperations;
+        private int _operationsPending;
 
-        public int BlockingOperationsCount => _blockingOperations.Count;
-        public int NonBlockingOperationsCount => _nonBlockingOperations.Count;
 
-        public event EventHandler BlockingOperationsStarted; 
-        public event EventHandler BlockingOperationsFinished;
-
-        public delegate Task ControllableOperation();
-
-        public CrossController()
+        public bool IsBusy { get; private set; }
+        public int OperationsPending
         {
-            _blockingOperations = new Dictionary<Guid, ControllableOperation>();
-            _nonBlockingOperations = new Queue<ControllableOperation>();
-        }
-
-        public void AddOperation(ControllableOperation operation, bool isBlocking = false)
-        {
-            if (isBlocking)
-                _blockingOperations.Add(Guid.NewGuid(), operation);
-            else
-                _nonBlockingOperations.Enqueue(operation);
-        }
-
-        public void Execute()
-        {
-            ExecuteNonBlocking();
-            ExecuteBlocking();
-        }
-
-        private void ExecuteNonBlocking()
-        {
-            while (_nonBlockingOperations.Count != 0)
+            get => _operationsPending;
+            private set
             {
-                var operation = _nonBlockingOperations.Dequeue();
-                Task.Run(() => operation);
+                if (value == 0)
+                    OnFreed();
+                else if (value == 1 && _operationsPending == 0)
+                    OnControlBlocked();
+                    
+                _operationsPending = value;
             }
         }
 
-        private void ExecuteBlocking()
+        public event EventHandler ControlFreed;
+        public event EventHandler ControlBlocked;
+
+
+        public CrossController()
         {
-            Task.Run(OnBlockingOperationsStarted);
+            _operationsPending = 0;
 
-            Task.Run(() =>
-            {
-                foreach (var guidOperation in _blockingOperations.ToList())
-                {
-                    guidOperation.Value.Invoke()
-                        .ContinueWith(t =>
-                        {
-                            _blockingOperations.Remove(guidOperation.Key);
-
-                            if(_blockingOperations.Count == 0)
-                                OnBlockingOperationsFinished();
-                        });
-                }
-            });
+            IsBusy = false;
         }
 
-        private void OnBlockingOperationsStarted()
-        { 
-            BlockingOperationsStarted?.Invoke(this, EventArgs.Empty);
+        public void RegisterOperation(ref EventHandler operationFinished)
+        {
+            IsBusy = true;
+            OperationsPending++;
+
+            operationFinished += OperationFinished;
         }
 
-        private void OnBlockingOperationsFinished()
+        private void OperationFinished(object sender, EventArgs e)
         {
-            BlockingOperationsFinished?.Invoke(this, EventArgs.Empty);
+            OperationsPending--;
+        }
+
+        private void OnFreed()
+        {
+            ControlFreed?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnControlBlocked()
+        {
+            ControlBlocked?.Invoke(this, EventArgs.Empty);
         }
     }
 }

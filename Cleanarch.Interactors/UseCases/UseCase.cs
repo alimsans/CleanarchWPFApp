@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using Autofac;
 using System.Threading.Tasks;
 using Cleanarch.DomainLayer.Models;
@@ -61,13 +60,6 @@ namespace Cleanarch.DomainLayer.UseCases
             handler.ExecutingTask = ExecutingTask;
 
             return handler;
-        }
-
-        public Task ExecuteInController(UseCaseHandler<TOutput> handler)
-        {
-            Execute(handler);
-
-            return ExecutingTask;
         }
 
         protected abstract Task<TOutput> GetUseCaseTask();

@@ -4,7 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Channels;
+using System.Threading.Tasks;
 using System.Windows;
 using Cleanarch.DomainLayer.Models;
 using Cleanarch.DomainLayer.UseCases;
@@ -21,6 +22,7 @@ namespace WpfApp1.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
         public event ErrorEventHandler OnError;
 
+        private event EventHandler OperationFinished;
         public event EventHandler BlockingOperationsStarted;
         public event EventHandler BlockingOperationsFinished;
 
@@ -29,20 +31,27 @@ namespace WpfApp1.ViewModels
             TodoList = new ObservableCollection<TaskModel>();
 
             _controller = new CrossController();
-            _controller.BlockingOperationsStarted += (sender, e) => BlockingOperationsStarted?.Invoke(sender, e);
-            _controller.BlockingOperationsFinished += (sender, e) => BlockingOperationsFinished?.Invoke(sender, e);
+            _controller.ControlBlocked += OnBlockingOperationsStarted;
+            _controller.ControlFreed += OnBlockingOperationsFinished;
 
             _useCaseHandler = new UseCaseHandler<IEnumerable<TaskModel>>(
-                onComplete: UpdateTodoList, 
+                onComplete: OnUseCaseComplete,
                 onError: e =>  OnError?.Invoke(this, new ErrorEventArgs(e)));
+        }
+
+        private void OnUseCaseComplete(IEnumerable<TaskModel> data)
+        {
+            UpdateTodoList(data);
+            OnOperationFinished();
         }
 
         public void AddTask(TaskModel taskModel)
         {
             var useCase = new AddTaskUseCase { Payload = taskModel };
-           
-            _controller.AddOperation(() => useCase.ExecuteInController(_useCaseHandler), true);
-            _controller.Execute();
+
+            _controller.RegisterOperation(ref OperationFinished);
+
+            useCase.Execute(_useCaseHandler);
         }
 
         private void UpdateTodoList(IEnumerable<TaskModel> tasks)
@@ -66,8 +75,7 @@ namespace WpfApp1.ViewModels
             {
                 var useCase = new RemoveTaskUseCase { Payload = taskModel };
 
-                _controller.AddOperation(() => useCase.ExecuteInController(_useCaseHandler), true);
-                _controller.Execute();
+                _controller.RegisterOperation(ref OperationFinished);
             }
         }
 
@@ -75,8 +83,24 @@ namespace WpfApp1.ViewModels
         {
             var useCase = new GetTasksUseCase();
 
-            _controller.AddOperation(() => useCase.ExecuteInController(_useCaseHandler), true);
-            _controller.Execute();
+            useCase.Execute(_useCaseHandler);
+
+            _controller.RegisterOperation(ref OperationFinished);
+        }
+
+        private void OnBlockingOperationsStarted(object sender, EventArgs e)
+        {
+            Task.Run(() => BlockingOperationsStarted?.Invoke(this, EventArgs.Empty));
+        }
+
+        private void OnBlockingOperationsFinished(object sender, EventArgs e)
+        {
+            BlockingOperationsFinished?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected void OnOperationFinished()
+        {
+            OperationFinished?.Invoke(this, EventArgs.Empty);
         }
     }
 }
