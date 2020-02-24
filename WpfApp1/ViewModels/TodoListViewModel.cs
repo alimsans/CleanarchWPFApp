@@ -26,11 +26,11 @@ namespace WpfApp1.ViewModels
         public event EventHandler BlockingOperationsStarted;
         public event EventHandler BlockingOperationsFinished;
 
-        public TodoListViewModel()
+        internal TodoListViewModel(CrossController controller)
         {
             TodoList = new ObservableCollection<TaskModel>();
 
-            _controller = new CrossController();
+            _controller = controller;
             _controller.ControlBlocked += OnBlockingOperationsStarted;
             _controller.ControlFreed += OnBlockingOperationsFinished;
 

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows;
+using WpfApp1.Controllers;
 using WpfApp1.ViewModels;
 using WpfApp1.Views;
 
@@ -12,12 +12,14 @@ namespace WpfApp1
     public partial class MainWindow : Window
     {
         private readonly TodoListViewModel _todoListViewModel;
+        private readonly CrossController _controller;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _todoListViewModel = new TodoListViewModel();
+            _controller = new CrossController();
+            _todoListViewModel = new TodoListViewModel(_controller);
             _todoListViewModel.OnError += TodoListViewModel_OnError;
             _todoListViewModel.BlockingOperationsStarted += OnBlockingOperationsStarted;
             _todoListViewModel.BlockingOperationsFinished += OnBlockingOperationsFinished;

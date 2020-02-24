@@ -10,7 +10,6 @@ namespace WpfApp1.Controllers
     {
         private int _operationsPending;
 
-
         public bool IsBusy { get; private set; }
         public int OperationsPending
         {
